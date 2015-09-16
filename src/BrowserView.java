@@ -221,11 +221,6 @@ public class BrowserView {
     // make buttons for setting favorites/home URLs
     private Node makePreferencesPanel () {
         HBox result = new HBox();
-        myFavorites = new ComboBox<String>();
-        myFavorites.setPromptText(myResources.getString("FavoriteFirstItem"));
-        myFavorites.valueProperty().addListener((o, s1, s2) -> showFavorite(s2));
-        result.getChildren().add(makeButton("AddFavoriteCommand", event -> addFavorite()));
-        result.getChildren().add(myFavorites);
         result.getChildren().add(makeButton("SetHomeCommand", event -> {
             myModel.setHome();
             enableButtons();
