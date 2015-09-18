@@ -60,15 +60,24 @@ public class BrowserModel {
      * Changes current page to given URL, removing next history.
      */
     public URL go (String url) {
-        myCurrentURL = completeURL(url);
-        if (myCurrentURL != null) {
-            if (hasNext()) {
-                myHistory = myHistory.subList(0, myCurrentIndex + 1);
+        try {
+            URL tmp = completeURL(url);
+            // unfortunately, completeURL may not have returned a valid URL, so test it
+            tmp.openStream();
+            // if successful, remember this URL
+            myCurrentURL = tmp;
+            if (myCurrentURL != null) {
+                if (hasNext()) {
+                    myHistory = myHistory.subList(0, myCurrentIndex + 1);
+                }
+                myHistory.add(myCurrentURL);
+                myCurrentIndex++;
             }
-            myHistory.add(myCurrentURL);
-            myCurrentIndex++;
+            return myCurrentURL;
         }
-        return myCurrentURL;
+        catch (Exception e) {
+            return null;
+        }
     }
 
     /**

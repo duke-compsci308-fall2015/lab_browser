@@ -92,7 +92,7 @@ public class BrowserView {
      */
     public void showPage (String url) {
         URL valid = myModel.go(url);
-        if (url != null) {
+        if (valid != null) {
             update(valid);
         }
         else {
@@ -142,12 +142,15 @@ public class BrowserView {
     // change page to favorite choice
     private void showFavorite (String favorite) {
         showPage(myModel.getFavorite(favorite).toString());
+        // reset favorites so the same choice can be made again
+        myFavorites.setValue(null);
     }
 
     // update just the view to display given URL
     private void update (URL url) {
-        myPage.getEngine().load(url.toString());
-        myURLDisplay.setText(url.toString());
+        String urlText = url.toString();
+        myPage.getEngine().load(urlText);
+        myURLDisplay.setText(urlText);
         enableButtons();
     }
 
@@ -221,6 +224,11 @@ public class BrowserView {
     // make buttons for setting favorites/home URLs
     private Node makePreferencesPanel () {
         HBox result = new HBox();
+        myFavorites = new ComboBox<String>();
+        myFavorites.setPromptText(myResources.getString("FavoriteFirstItem"));
+        myFavorites.valueProperty().addListener((o, s1, s2) -> showFavorite(s2));
+        result.getChildren().add(makeButton("AddFavoriteCommand", event -> addFavorite()));
+        result.getChildren().add(myFavorites);
         result.getChildren().add(makeButton("SetHomeCommand", event -> {
             myModel.setHome();
             enableButtons();
