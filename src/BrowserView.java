@@ -84,19 +84,18 @@ public class BrowserView {
         enableButtons();
         // create scene to hold UI
         myScene = new Scene(root, DEFAULT_SIZE.width, DEFAULT_SIZE.height);
-        //myScene.getStylesheets().add(DEFAULT_RESOURCE_PACKAGE + STYLESHEET);
+        myScene.getStylesheets().add(DEFAULT_RESOURCE_PACKAGE + STYLESHEET);
     }
 
     /**
      * Display given URL.
      */
     public void showPage (String url) {
-        URL valid = myModel.go(url);
-        if (valid != null) {
-            update(valid);
+        try {
+            update(myModel.go(url));
         }
-        else {
-            showError("Could not load " + url);
+        catch (BrowserException e) {
+            showError(e.getMessage());
         }
     }
 
@@ -265,16 +264,17 @@ public class BrowserView {
     // display page
     // very old style way create a callback (inner class)
     private class ShowPage implements EventHandler<ActionEvent> {
-        @Override      
-        public void handle (ActionEvent event) {       
-            showPage(myURLDisplay.getText());      
-        }      
+        @Override
+        public void handle (ActionEvent event) {
+            showPage(myURLDisplay.getText());
+        }
     }
 
 
     // Inner class to deal with link-clicks and mouse-overs Mostly taken from
     //   http://blogs.kiyut.com/tonny/2013/07/30/javafx-webview-addhyperlinklistener/
     private class LinkListener implements ChangeListener<State> {
+        public static final String HTML_LINK = "href";
         public static final String EVENT_CLICK = "click";
         public static final String EVENT_MOUSEOVER = "mouseover";
         public static final String EVENT_MOUSEOUT = "mouseout";
@@ -283,7 +283,7 @@ public class BrowserView {
         public void changed (ObservableValue<? extends State> ov, State oldState, State newState) {
             if (newState == Worker.State.SUCCEEDED) {
                 EventListener listener = event -> {
-                    final String href = ((Element)event.getTarget()).getAttribute("href");
+                    final String href = ((Element)event.getTarget()).getAttribute(HTML_LINK);
                     if (href != null) {
                         String domEventType = event.getType();
                         if (domEventType.equals(EVENT_CLICK)) {

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 
 /**
@@ -14,6 +15,7 @@ import java.util.Map;
  */
 public class BrowserModel {
     // constants
+    public static final String DEFAULT_RESOURCES = "resources/Errors";
     public static final String PROTOCOL_PREFIX = "http://";
     // state
     private URL myHome;
@@ -21,6 +23,8 @@ public class BrowserModel {
     private int myCurrentIndex;
     private List<URL> myHistory;
     private Map<String, URL> myFavorites;
+    // get strings from resource file
+    private ResourceBundle myResources;
 
 
     /**
@@ -32,6 +36,8 @@ public class BrowserModel {
         myCurrentIndex = -1;
         myHistory = new ArrayList<>();
         myFavorites = new HashMap<>();
+        // use resources for errors
+        myResources = ResourceBundle.getBundle(DEFAULT_RESOURCES);
     }
 
     /**
@@ -42,7 +48,9 @@ public class BrowserModel {
             myCurrentIndex++;
             return myHistory.get(myCurrentIndex);
         }
-        return null;
+        else {
+            throw new BrowserException(myResources.getString("NoNext"));
+        }
     }
 
     /**
@@ -53,7 +61,9 @@ public class BrowserModel {
             myCurrentIndex--;
             return myHistory.get(myCurrentIndex);
         }
-        return null;
+        else {
+            throw new BrowserException(myResources.getString("NoPrevious"));
+        }
     }
 
     /**
@@ -66,17 +76,15 @@ public class BrowserModel {
             tmp.openStream();
             // if successful, remember this URL
             myCurrentURL = tmp;
-            if (myCurrentURL != null) {
-                if (hasNext()) {
-                    myHistory = myHistory.subList(0, myCurrentIndex + 1);
-                }
-                myHistory.add(myCurrentURL);
-                myCurrentIndex++;
+            if (hasNext()) {
+                myHistory = myHistory.subList(0, myCurrentIndex + 1);
             }
+            myHistory.add(myCurrentURL);
+            myCurrentIndex++;
             return myCurrentURL;
         }
         catch (Exception e) {
-            return null;
+            throw new BrowserException(e, myResources.getString("NoLoad"), url);
         }
     }
 
@@ -128,11 +136,13 @@ public class BrowserModel {
         if (name != null && !name.equals("") && myFavorites.containsKey(name)) {
             return myFavorites.get(name);
         }
-        return null;
+        else {
+            throw new BrowserException(myResources.getString("BadFavorite"), name);
+        }
     }
 
     // deal with a potentially incomplete URL
-    private URL completeURL (String possible) {
+    private URL completeURL (String possible) throws MalformedURLException {
         try {
             // try it as is
             return new URL(possible);
@@ -146,7 +156,8 @@ public class BrowserModel {
                     // e.g., let user leave off initial protocol
                     return new URL(PROTOCOL_PREFIX + possible);
                 } catch (MalformedURLException eee) {
-                    return null;
+                    // nothing else to do, let caller report error to user
+                    throw eee;
                 }
             }
         }
